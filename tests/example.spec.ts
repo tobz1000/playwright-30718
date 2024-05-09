@@ -1,18 +1,23 @@
-import { test, expect } from '@playwright/test';
+import { test as base, expect } from "@playwright/test";
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
+const test = base.extend<{ bugRepro: undefined; noRepro: undefined }>({
+  bugRepro: [
+    async ({ page }, use) => {
+      await page.goto("https://google.com");
+      await use(undefined);
+      await page.getByLabel("asdadsasdasds").click();
+    },
+    { timeout: 5_000 },
+  ],
+  noRepro: [
+    async ({ page }, use) => {
+      await page.goto("https://google.com");
+      await page.getByLabel("asdadsasdasds").click();
+      await use(undefined);
+    },
+    { timeout: 5_000 },
+  ],
 });
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
-
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
-});
+test("reproduce bug", async ({ bugRepro }) => {});
+test("no bug", async ({ noRepro }) => {});
